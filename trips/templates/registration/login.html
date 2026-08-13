@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Log in{% endblock %}
+{% block main_class %}auth{% endblock %}
+{% block wrap_class %}wrap--narrow{% endblock %}
+
+{% block content %}
+<div class="auth__brand">
+  <span class="wordmark">VERBIND<span class="wordmark__dot">.</span></span>
+  <p class="auth__tag">Share the ride. Split the fare.</p>
+</div>
+
+<div class="panel">
+  <h1 style="font-size:1.25rem;margin-bottom:18px">Log in</h1>
+  <form method="post">
+    {% csrf_token %}
+    {% include "partials/_form.html" with form=form %}
+    <div class="form-actions">
+      <button type="submit" class="btn btn--block">Log in</button>
+    </div>
+  </form>
+</div>
+
+<p class="auth__alt">New here? <a href="{% url 'signup' %}">Create an account</a></p>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}{{ trip.pickup_area }} to {{ trip.dropoff_area }}{% endblock %}
+
+{% block content %}
+<div class="head">
+  <h1>{{ trip.pickup_area }} &rarr; {{ trip.dropoff_area }}</h1>
+</div>
+
+<div class="detail-grid">
+
+  <div>
+    <div class="panel">
+      <h2 class="panel__title">Trip</h2>
+      <dl class="datalist">
+        <div><dt>Departs</dt><dd>{{ trip.departure_time|date:"D, d M Y · H:i" }}</dd></div>
+        <div><dt>Seats</dt><dd>{{ trip.spots_filled }} of {{ trip.max_companions }} taken</dd></div>
+        {% if trip.cost_estimate %}
+        <div><dt>Estimated total</dt><dd>&#8358;{{ trip.cost_estimate|floatformat:"0" }}</dd></div>
+        {% endif %}
+        <div><dt>Rider preference</dt><dd>{{ trip.get_gender_preference_display }}</dd></div>
+        <div><dt>Status</dt><dd>{{ trip.get_status_display }}</dd></div>
+      </dl>
+      {% if trip.notes %}<p class="ticket__note" style="padding:14px 0 0">{{ trip.notes }}</p>{% endif %}
+    </div>
+
+    {% if is_participant %}
+    <div class="panel">
+      <h2 class="panel__title">Chat</h2>
+      <div class="chat">
+        {% for m in chat_messages %}
+          <div class="bubble{% if m.sender == user %} bubble--mine{% endif %}">
+            <span class="bubble__who">{{ m.sender.username }}</span>
+            {{ m.body }}<span class="bubble__time">{{ m.created_at|date:"H:i" }}</span>
+          </div>
+        {% empty %}
+          <p style="color:var(--muted);margin:0">No messages yet. Say hello and agree a meeting point.</p>
+        {% endfor %}
+      </div>
+      <form method="post" class="composer">
+        {% csrf_token %}
+        {{ msg_form.body }}
+        <button type="submit" name="send_message" class="btn">Send</button>
+      </form>
+    </div>
+
+    {% if trip.status == 'completed' and other_participants %}
+    <div class="panel">
+      <h2 class="panel__title">Rate your ride companions</h2>
+      {% for participant in other_participants %}
+      <form method="post" action="{% url 'trip-rate' trip.pk participant.id %}" class="rate-row">
+        {% csrf_token %}
+        <strong style="flex:0 0 auto">{{ participant.username }}</strong>
+        {{ rating_form.score }}
+        {{ rating_form.comment }}
+        <button type="submit" class="btn btn--ghost btn--sm">Save rating</button>
+      </form>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endif %}
+  </div>
+
+  <div>
+    <div class="panel">
+      <h2 class="panel__title">Posted by</h2>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        {% if trip.traveler.profile.picture %}
+          <img class="avatar" style="width:52px;height:52px" src="{{ trip.traveler.profile.picture.url }}" alt="">
+        {% else %}
+          <span class="avatar avatar--initial" style="width:52px;height:52px;font-size:1.3rem">{{ trip.traveler.username|first|upper }}</span>
+        {% endif %}
+        <div>
+          <div style="font-weight:600">{{ trip.traveler.username }}</div>
+          <div style="margin-top:5px;display:flex;gap:6px;flex-wrap:wrap">
+            {% if trip.traveler.profile.is_verified %}<span class="stamp">Verified</span>{% endif %}
+            {% if trip.traveler.profile.trust_score %}
+              <span class="chip chip--score">{{ trip.traveler.profile.trust_score|floatformat:1 }} &#9733; trust</span>
+            {% else %}
+              <span class="chip chip--status">No ratings yet</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if is_participant %}
+    <div class="panel">
+      <h2 class="panel__title">Journey status</h2>
+      <p style="color:var(--muted);font-size:.88rem;margin-top:0">
+        Riders report the journey themselves in this prototype. Live GPS tracking is
+        a later phase and is not running here.
+      </p>
+      {% if trip.status == 'not_started' %}
+        <a href="{% url 'trip-status' trip.pk 'in_progress' %}" class="btn btn--gold btn--block">We've met — start the ride</a>
+      {% elif trip.status == 'in_progress' %}
+        <a href="{% url 'trip-status' trip.pk 'completed' %}" class="btn btn--block">We've arrived — end the ride</a>
+      {% else %}
+        <p style="margin:0"><span class="chip chip--status">Ride completed</span></p>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="panel">
+      <h2 class="panel__title">Want this ride?</h2>
+      <p style="color:var(--muted);font-size:.9rem;margin-top:0">
+        Join to unlock the chat, agree a pickup point and split the fare.
+      </p>
+      <form method="post" action="{% url 'trip-join' trip.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn--block">Join this ride</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<a href="{% url 'trip-list' %}" class="linkback">&larr; All rides</a>
+{% endblock %}

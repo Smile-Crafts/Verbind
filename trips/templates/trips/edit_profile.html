@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Your profile{% endblock %}
+{% block wrap_class %}wrap--narrow{% endblock %}
+
+{% block content %}
+<div class="head">
+  <h1>Your profile</h1>
+  <p class="head__sub">A clear photo and a real name make people far more willing to share
+    a ride with you.</p>
+</div>
+
+<div class="panel">
+  <div style="text-align:center;margin-bottom:22px">
+    {% if user.profile.picture %}
+      <img class="avatar avatar--lg" src="{{ user.profile.picture.url }}" alt="Your profile photo">
+    {% else %}
+      <span class="avatar avatar--initial avatar--lg">{{ user.username|first|upper }}</span>
+    {% endif %}
+    <div style="margin-top:10px">
+      {% if user.profile.is_verified %}
+        <span class="stamp">Verified</span>
+      {% else %}
+        <span class="chip chip--status">Not verified</span>
+      {% endif %}
+      {% if user.profile.trust_score %}
+        <span class="chip chip--score">{{ user.profile.trust_score|floatformat:1 }} &#9733; trust</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% include "partials/_form.html" with form=form %}
+    <div class="form-actions">
+      <button type="submit" class="btn btn--block">Save profile</button>
+    </div>
+  </form>
+</div>
+
+{% if not user.profile.is_verified %}
+<p class="auth__alt"><a href="{% url 'verify-identity' %}">Verify your identity &rarr;</a></p>
+{% endif %}
+
+<a href="{% url 'trip-list' %}" class="linkback">&larr; All rides</a>
+{% endblock %}

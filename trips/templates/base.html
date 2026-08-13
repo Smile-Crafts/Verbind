@@ -1,0 +1,56 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#5C1A26">
+    <title>{% block title %}Verbind{% endblock %} · Verbind</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'trips/verbind.css' %}">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar__inner">
+    <a class="wordmark" href="{% url 'trip-list' %}">VERBIND<span class="wordmark__dot">.</span></a>
+
+    <nav class="topbar__nav">
+      {% if user.is_authenticated %}
+        <span class="topbar__who">
+          <strong>{{ user.username }}</strong>
+          {% if user.profile.is_verified %}<span class="stamp stamp--onDark">Verified</span>{% endif %}
+        </span>
+        <a href="{% url 'trip-create' %}" class="btn btn--gold btn--sm">Post a ride</a>
+        <a href="{% url 'edit-profile' %}" class="btn btn--onDark btn--sm">Profile</a>
+        {% if not user.profile.is_verified %}
+          <a href="{% url 'verify-identity' %}" class="btn btn--onDark btn--sm">Verify identity</a>
+        {% endif %}
+        <form method="post" action="{% url 'logout' %}" style="margin:0">
+          {% csrf_token %}
+          <button type="submit" class="btn btn--onDark btn--sm">Log out</button>
+        </form>
+      {% else %}
+        <a href="{% url 'signup' %}" class="btn btn--gold btn--sm">Create account</a>
+        <a href="{% url 'login' %}" class="btn btn--onDark btn--sm">Log in</a>
+      {% endif %}
+    </nav>
+  </div>
+</header>
+
+<main class="{% block main_class %}page{% endblock %}">
+  <div class="wrap {% block wrap_class %}{% endblock %}">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="flash flash--{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+</body>
+</html>

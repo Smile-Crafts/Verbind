@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Verify identity{% endblock %}
+{% block wrap_class %}wrap--narrow{% endblock %}
+
+{% block content %}
+<div class="head">
+  <h1>Verify your identity</h1>
+  <p class="head__sub">Verified riders get a badge on every ride they post or join.</p>
+</div>
+
+<div class="notice">
+  <strong>Prototype only</strong>
+  This build accepts any uploaded image and marks the account verified so the flow can be
+  demonstrated. No NIN lookup or face match runs yet — that integration is a later phase.
+</div>
+
+<div class="panel">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% include "partials/_form.html" with form=form %}
+    <div class="form-actions">
+      <button type="submit" class="btn btn--gold btn--block">Submit for verification</button>
+    </div>
+  </form>
+</div>
+
+<a href="{% url 'trip-list' %}" class="linkback">&larr; All rides</a>
+{% endblock %}

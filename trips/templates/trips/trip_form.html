@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Post a ride{% endblock %}
+{% block wrap_class %}wrap--narrow{% endblock %}
+
+{% block content %}
+<div class="head">
+  <h1>Post your route</h1>
+  <p class="head__sub">Tell people where you're setting off from and where you're headed.
+    Anyone going the same way can ask to split it with you.</p>
+</div>
+
+<div class="panel">
+  <form method="post">
+    {% csrf_token %}
+    {% include "partials/_form.html" with form=form %}
+    <div class="form-actions">
+      <button type="submit" class="btn btn--block">Post ride</button>
+    </div>
+  </form>
+</div>
+
+<a href="{% url 'trip-list' %}" class="linkback">&larr; All rides</a>
+{% endblock %}
