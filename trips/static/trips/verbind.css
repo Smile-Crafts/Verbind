@@ -672,3 +672,136 @@ select {
   }
   .ticket:hover, .btn:hover { transform: none; }
 }
+
+/* ---------- VerAI floating button (placeholder, not yet functional) ---- */
+
+.verai-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--burgundy);
+  color: var(--cream);
+  text-decoration: none;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: .82rem;
+  padding: 11px 16px;
+  border-radius: 999px;
+  box-shadow: var(--shadow-lg);
+  transition: transform .15s ease;
+}
+.verai-fab:hover { color: var(--cream); transform: translateY(-2px); }
+.verai-fab__dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+  display: inline-block;
+}
+
+/* ---------- Password field with a show/hide toggle ---------------------- */
+
+.pw-field { position: relative; }
+.pw-field input { padding-right: 56px; }
+.pw-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: .78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 8px;
+}
+.pw-toggle:hover { color: var(--burgundy); }
+
+/* ---------- Coming-soon placeholder pages ------------------------------- */
+
+.soon-badge {
+  display: inline-block;
+  background: var(--gold-050);
+  color: var(--gold-ink);
+  border: 1px solid #E9D3A4;
+  border-radius: var(--r-sm);
+  padding: 4px 10px;
+  font-size: .78rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+/* ---------- Verification gate ------------------------------------------- */
+
+.verify-step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.verify-step:last-child { border-bottom: none; }
+.verify-step__icon {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: .95rem;
+}
+.verify-step__icon--done { background: #E6F1EB; color: var(--ok); }
+.verify-step__icon--pending { background: var(--burgundy-050); color: var(--burgundy); }
+
+/* ---------- Location autocomplete dropdown ------------------------------ */
+
+.loc-suggestions {
+  position: absolute;
+  left: 0; right: 0; top: 100%;
+  margin-top: 4px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-md);
+  z-index: 30;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.loc-suggestions:empty { border: none; box-shadow: none; }
+.loc-suggestions__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--line-soft);
+  padding: 9px 12px;
+  font-size: .85rem;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+.loc-suggestions__item:last-child { border-bottom: none; }
+.loc-suggestions__item:hover { background: var(--cream); }
+
+.username-hint { font-size: .8rem; font-weight: 500; margin-top: 4px; min-height: 1em; }
+
+/* ---------- Departure countdown ----------------------------------------- */
+
+.countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--burgundy);
+  background: var(--burgundy-050);
+  padding: 6px 12px;
+  border-radius: var(--r-sm);
+}

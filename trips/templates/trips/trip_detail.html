@@ -6,57 +6,119 @@
   <h1>{{ trip.pickup_area }} &rarr; {{ trip.dropoff_area }}</h1>
 </div>
 
+{% if anonymous %}
+
+<div class="detail-grid">
+  <div class="panel">
+    <h2 class="panel__title">Trip</h2>
+    <dl class="datalist">
+      <div><dt>Departs</dt><dd>{{ trip.departure_time|date:"D, d M Y · H:i" }}</dd></div>
+      <div><dt>Seats</dt><dd>{{ trip.spots_filled }} of {{ trip.max_companions }} taken</dd></div>
+      {% if trip.cost_estimate %}
+      <div><dt>Estimated total</dt><dd>&#8358;{{ trip.cost_estimate|floatformat:"0" }}</dd></div>
+      {% if trip.cost_per_person %}<div><dt>Per person if full</dt><dd>&#8358;{{ trip.cost_per_person|floatformat:"0" }}</dd></div>{% endif %}
+      {% endif %}
+      <div><dt>Rider preference</dt><dd>{{ trip.get_gender_preference_display }}</dd></div>
+    </dl>
+  </div>
+  <div class="panel">
+    <h2 class="panel__title">Want this ride?</h2>
+    <p style="color:var(--muted);font-size:.9rem;margin-top:0">
+      Log in to see who posted it, message them, and join.
+    </p>
+    {% if trip.is_full %}
+      <span class="btn btn--ghost btn--block btn--disabled">Fully booked</span>
+    {% else %}
+      <a href="{% url 'login' %}?next={% url 'trip-detail' trip.pk %}" class="btn btn--block">Join ride</a>
+    {% endif %}
+  </div>
+</div>
+<a href="{% url 'trip-list' %}" class="linkback">&larr; All rides</a>
+
+{% else %}
+
+{% if needs_rating %}
+<dialog id="rateDialog" class="panel" style="max-width:420px;width:90%;border:1px solid var(--line)">
+  <h2 class="panel__title">How was the ride?</h2>
+  <p style="color:var(--muted);font-size:.88rem;margin-top:0">This ride's done — rate the people you shared it with.</p>
+  {% for participant in other_participants %}
+  <form method="post" action="{% url 'trip-rate' trip.pk participant.id %}" class="rate-row">
+    {% csrf_token %}
+    <strong style="flex:0 0 auto">{{ participant.get_full_name|default:participant.username }}</strong>
+    {{ rating_form.score }}
+    {{ rating_form.comment }}
+    <button type="submit" class="btn btn--ghost btn--sm">Save</button>
+  </form>
+  {% endfor %}
+  <button type="button" class="btn btn--ghost btn--sm" style="margin-top:12px" onclick="document.getElementById('rateDialog').close()">Maybe later</button>
+</dialog>
+<script>document.getElementById('rateDialog').showModal();</script>
+{% endif %}
+
 <div class="detail-grid">
 
   <div>
     <div class="panel">
       <h2 class="panel__title">Trip</h2>
+      {% if is_participant and trip.status == 'not_started' %}
+        <span id="countdown" class="countdown" style="margin-bottom:14px"></span>
+        <script>Verbind.attachCountdown('countdown', '{{ trip.departure_time|date:"c" }}');</script>
+      {% endif %}
       <dl class="datalist">
         <div><dt>Departs</dt><dd>{{ trip.departure_time|date:"D, d M Y · H:i" }}</dd></div>
         <div><dt>Seats</dt><dd>{{ trip.spots_filled }} of {{ trip.max_companions }} taken</dd></div>
         {% if trip.cost_estimate %}
         <div><dt>Estimated total</dt><dd>&#8358;{{ trip.cost_estimate|floatformat:"0" }}</dd></div>
+        {% if trip.cost_per_person %}<div><dt>Per person if full</dt><dd>&#8358;{{ trip.cost_per_person|floatformat:"0" }}</dd></div>{% endif %}
         {% endif %}
         <div><dt>Rider preference</dt><dd>{{ trip.get_gender_preference_display }}</dd></div>
         <div><dt>Status</dt><dd>{{ trip.get_status_display }}</dd></div>
       </dl>
       {% if trip.notes %}<p class="ticket__note" style="padding:14px 0 0">{{ trip.notes }}</p>{% endif %}
+
+      {% if trip.traveler == user %}
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <a href="{% url 'trip-edit' trip.pk %}" class="btn btn--ghost btn--sm">Edit ride</a>
+        <form method="post" action="{% url 'trip-delete' trip.pk %}"
+              onsubmit="return confirm('Delete this ride? This can\'t be undone.');">
+          {% csrf_token %}
+          <button type="submit" class="btn btn--ghost btn--sm">Delete ride</button>
+        </form>
+      </div>
+      {% elif is_own_join %}
+      <div style="margin-top:16px">
+        <form method="post" action="{% url 'trip-leave' trip.pk %}"
+              onsubmit="return confirm('Leave this ride? You can join again later if there\'s still room.');">
+          {% csrf_token %}
+          <button type="submit" class="btn btn--ghost btn--sm">Cancel my spot</button>
+        </form>
+      </div>
+      {% endif %}
     </div>
 
     {% if is_participant %}
     <div class="panel">
-      <h2 class="panel__title">Chat</h2>
-      <div class="chat">
-        {% for m in chat_messages %}
-          <div class="bubble{% if m.sender == user %} bubble--mine{% endif %}">
-            <span class="bubble__who">{{ m.sender.username }}</span>
-            {{ m.body }}<span class="bubble__time">{{ m.created_at|date:"H:i" }}</span>
-          </div>
-        {% empty %}
-          <p style="color:var(--muted);margin:0">No messages yet. Say hello and agree a meeting point.</p>
+      <h2 class="panel__title">Message a rider</h2>
+      {% if companions %}
+        <p style="color:var(--muted);font-size:.88rem;margin-top:0">
+          Each conversation is private between you and that rider.
+        </p>
+        {% for person in companions %}
+        <a href="{% url 'trip-chat' trip.pk person.id %}" class="rider" style="text-decoration:none;padding:10px 0;border-bottom:1px solid var(--line-soft)">
+          {% if person.profile.picture %}
+            <img class="avatar" src="{{ person.profile.picture.url }}" alt="">
+          {% else %}
+            <span class="avatar avatar--initial">{{ person.get_full_name|default:person.username|first|upper }}</span>
+          {% endif %}
+          <span class="rider__name">{{ person.get_full_name|default:person.username }}</span>
+          {% if person.profile.is_verified %}<span class="stamp">Verified</span>{% endif %}
+          <span class="btn btn--ghost btn--sm" style="margin-left:auto">Message</span>
+        </a>
         {% endfor %}
-      </div>
-      <form method="post" class="composer">
-        {% csrf_token %}
-        {{ msg_form.body }}
-        <button type="submit" name="send_message" class="btn">Send</button>
-      </form>
+      {% else %}
+        <p style="color:var(--muted);margin:0">No one else has joined yet.</p>
+      {% endif %}
     </div>
-
-    {% if trip.status == 'completed' and other_participants %}
-    <div class="panel">
-      <h2 class="panel__title">Rate your ride companions</h2>
-      {% for participant in other_participants %}
-      <form method="post" action="{% url 'trip-rate' trip.pk participant.id %}" class="rate-row">
-        {% csrf_token %}
-        <strong style="flex:0 0 auto">{{ participant.username }}</strong>
-        {{ rating_form.score }}
-        {{ rating_form.comment }}
-        <button type="submit" class="btn btn--ghost btn--sm">Save rating</button>
-      </form>
-      {% endfor %}
-    </div>
-    {% endif %}
     {% endif %}
   </div>
 
@@ -67,10 +129,10 @@
         {% if trip.traveler.profile.picture %}
           <img class="avatar" style="width:52px;height:52px" src="{{ trip.traveler.profile.picture.url }}" alt="">
         {% else %}
-          <span class="avatar avatar--initial" style="width:52px;height:52px;font-size:1.3rem">{{ trip.traveler.username|first|upper }}</span>
+          <span class="avatar avatar--initial" style="width:52px;height:52px;font-size:1.3rem">{{ trip.traveler.get_full_name|default:trip.traveler.username|first|upper }}</span>
         {% endif %}
         <div>
-          <div style="font-weight:600">{{ trip.traveler.username }}</div>
+          <div style="font-weight:600">{{ trip.traveler.get_full_name|default:trip.traveler.username }}</div>
           <div style="margin-top:5px;display:flex;gap:6px;flex-wrap:wrap">
             {% if trip.traveler.profile.is_verified %}<span class="stamp">Verified</span>{% endif %}
             {% if trip.traveler.profile.trust_score %}
@@ -102,7 +164,7 @@
     <div class="panel">
       <h2 class="panel__title">Want this ride?</h2>
       <p style="color:var(--muted);font-size:.9rem;margin-top:0">
-        Join to unlock the chat, agree a pickup point and split the fare.
+        Join to message the rider, agree a pickup point and split the fare.
       </p>
       <form method="post" action="{% url 'trip-join' trip.pk %}">
         {% csrf_token %}
@@ -115,4 +177,6 @@
 </div>
 
 <a href="{% url 'trip-list' %}" class="linkback">&larr; All rides</a>
+
+{% endif %}
 {% endblock %}

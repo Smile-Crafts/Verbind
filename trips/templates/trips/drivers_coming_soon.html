@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Drivers{% endblock %}
+{% block wrap_class %}wrap--narrow{% endblock %}
+
+{% block content %}
+<span class="soon-badge">Coming soon</span>
+<h1>Driving with Verbind</h1>
+<p class="head__sub">
+  We're opening Verbind up to people who drive their own car but don't want
+  a full-time gig with Uber or Bolt — occasional, on your own schedule.
+</p>
+<div class="panel" style="margin-top:20px">
+  <p style="margin:0;color:var(--muted)">
+    This is where you'll register your car and set your availability once
+    it's live. For now, this section is just here so you know it's coming —
+    there's nothing to sign up for yet.
+  </p>
+</div>
+<a href="{% url 'trip-list' %}" class="linkback">&larr; Back to rides</a>
+{% endblock %}

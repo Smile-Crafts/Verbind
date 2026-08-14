@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Chat with {{ other.get_full_name|default:other.username }}{% endblock %}
+{% block wrap_class %}wrap--narrow{% endblock %}
+
+{% block content %}
+<div class="head">
+  <h1>{{ other.get_full_name|default:other.username }}</h1>
+  <p class="head__sub">{{ trip.pickup_area }} &rarr; {{ trip.dropoff_area }} · private to just the two of you</p>
+</div>
+
+<div class="panel">
+  <div class="chat">
+    {% for m in chat_messages %}
+      <div class="bubble{% if m.sender == user %} bubble--mine{% endif %}">
+        {% if not m.recipient %}<span class="bubble__who">{{ m.sender.get_full_name|default:m.sender.username }}</span>{% endif %}
+        {{ m.body }}<span class="bubble__time">{{ m.created_at|date:"H:i" }}</span>
+      </div>
+    {% empty %}
+      <p style="color:var(--muted);margin:0">No messages yet. Say hello and agree a meeting point.</p>
+    {% endfor %}
+  </div>
+  <form method="post" class="composer">
+    {% csrf_token %}
+    {{ msg_form.body }}
+    <button type="submit" class="btn">Send</button>
+  </form>
+</div>
+
+<a href="{% url 'trip-detail' trip.pk %}" class="linkback">&larr; Back to ride</a>
+{% endblock %}

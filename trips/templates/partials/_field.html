@@ -1,7 +1,18 @@
 {% comment %}Renders one form field with label, help text and errors.{% endcomment %}
+{% if field.is_hidden %}
+  {{ field }}
+{% else %}
 <div class="field">
   {{ field.label_tag }}
-  {{ field }}
+  {% if field.field.widget.input_type == 'password' %}
+    <div class="pw-field">
+      {{ field }}
+      <button type="button" class="pw-toggle" onclick="Verbind.togglePassword(this)">Show</button>
+    </div>
+  {% else %}
+    {{ field }}
+  {% endif %}
   {% if field.help_text %}<div class="field__help">{{ field.help_text|safe }}</div>{% endif %}
   {% for error in field.errors %}<div class="field__error">{{ error }}</div>{% endfor %}
 </div>
+{% endif %}

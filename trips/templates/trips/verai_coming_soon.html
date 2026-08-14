@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}VerAI{% endblock %}
+{% block wrap_class %}wrap--narrow{% endblock %}
+
+{% block content %}
+<span class="soon-badge">Coming soon</span>
+<h1>VerAI</h1>
+<p class="head__sub">
+  Tell VerAI where you're going and it'll suggest posted rides near your
+  route, or help you post your own. Not switched on yet — this is just
+  where it'll live.
+</p>
+<a href="{% url 'trip-list' %}" class="linkback">&larr; Back to rides</a>
+{% endblock %}

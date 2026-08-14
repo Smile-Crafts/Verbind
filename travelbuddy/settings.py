@@ -43,6 +43,11 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
 
 SITE_NAME = 'Verbind'
+# Used to build absolute links in emails (e.g. "click here to verify your
+# email"), since email clients can't resolve a relative URL. Defaults to
+# local dev; set SITE_URL as a Railway env var once deployed, e.g.
+# https://web-production-5536dc.up.railway.app  (no trailing slash).
+SITE_URL = os.environ.get('SITE_URL', 'http://127.0.0.1:8000')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -78,6 +83,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'trips.context_processors.unread_messages',
             ],
         },
     },

@@ -19,5 +19,10 @@
   </form>
 </div>
 
+<script>
+  Verbind.attachLocationSearch('id_pickup_area', 'id_pickup_lat', 'id_pickup_lng');
+  Verbind.attachLocationSearch('id_dropoff_area', 'id_dropoff_lat', 'id_dropoff_lng');
+</script>
+
 <a href="{% url 'trip-list' %}" class="linkback">&larr; All rides</a>
 {% endblock %}

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}My rides{% endblock %}
+
+{% block content %}
+<div class="head">
+  <h1>Your posted rides</h1>
+  <p class="head__sub">Only you can see this list, edit these rides, or take them down.</p>
+</div>
+
+{% if trips %}
+<div class="rides">
+  {% for trip in trips %}
+  <article class="ticket">
+    <div class="ticket__stub">
+      <span>Ticket #{{ trip.pk|stringformat:"05d" }}</span>
+      <span>{{ trip.get_status_display }}</span>
+    </div>
+    <div class="ticket__top">
+      <div class="route">
+        <div class="route__leg">
+          <div class="route__node"><span></span></div>
+          <div><span class="route__label">Pickup</span><span class="route__place">{{ trip.pickup_area }}</span></div>
+        </div>
+        <div class="route__rail"></div>
+        <div class="route__leg route__leg--end">
+          <div class="route__node"><span></span></div>
+          <div><span class="route__label">Drop-off</span><span class="route__place">{{ trip.dropoff_area }}</span></div>
+        </div>
+      </div>
+      {% if trip.cost_estimate %}
+      <div class="fare">
+        <span class="fare__amount">&#8358;{{ trip.cost_estimate|floatformat:"0" }}</span>
+        <span class="fare__note">Est. total</span>
+      </div>
+      {% endif %}
+    </div>
+    <div class="ticket__perf"></div>
+    <div class="ticket__meta">
+      <span class="when">{{ trip.departure_time|date:"D d M · H:i" }}</span>
+      <span class="seats">
+        <span class="seats__pips">
+          {% for taken in trip.seat_states %}
+            <span class="seats__pip{% if taken %} seats__pip--filled{% endif %}"></span>
+          {% endfor %}
+        </span>
+        <span class="seats__count">{{ trip.spots_filled }} of {{ trip.max_companions }}</span>
+      </span>
+    </div>
+    <div class="ticket__actions">
+      <a href="{% url 'trip-detail' trip.pk %}" class="btn btn--ghost btn--sm">View</a>
+      <a href="{% url 'trip-edit' trip.pk %}" class="btn btn--ghost btn--sm">Edit</a>
+      <form method="post" action="{% url 'trip-delete' trip.pk %}"
+            onsubmit="return confirm('Delete this ride? This can\'t be undone.');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn--ghost btn--sm">Delete</button>
+      </form>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  <p class="empty__title">You haven't posted a ride yet</p>
+  <p class="empty__body">Post your route and let someone join you.</p>
+  <a href="{% url 'trip-create' %}" class="btn">Post a ride</a>
+</div>
+{% endif %}
+
+<a href="{% url 'trip-list' %}" class="linkback">&larr; All rides</a>
+{% endblock %}

@@ -54,7 +54,10 @@
       {% if trip.cost_estimate %}
       <div class="fare">
         <span class="fare__amount">&#8358;{{ trip.cost_estimate|floatformat:"0" }}</span>
-        <span class="fare__note">Est. total</span>
+        <span class="fare__note">
+          Est. total
+          {% if trip.cost_per_person %}&middot; &#8358;{{ trip.cost_per_person|floatformat:"0" }}/person if full{% endif %}
+        </span>
       </div>
       {% endif %}
     </div>
@@ -74,15 +77,19 @@
     </div>
 
     <div class="rider">
-      {% if trip.traveler.profile.picture %}
-        <img class="avatar" src="{{ trip.traveler.profile.picture.url }}" alt="">
+      {% if user.is_authenticated %}
+        {% if trip.traveler.profile.picture %}
+          <img class="avatar" src="{{ trip.traveler.profile.picture.url }}" alt="">
+        {% else %}
+          <span class="avatar avatar--initial">{{ trip.traveler.get_full_name|default:trip.traveler.username|first|upper }}</span>
+        {% endif %}
+        <span class="rider__name">{{ trip.traveler.get_full_name|default:trip.traveler.username }}</span>
+        {% if trip.traveler.profile.is_verified %}<span class="stamp">Verified</span>{% endif %}
+        {% if trip.traveler.profile.trust_score %}
+          <span class="chip chip--score">{{ trip.traveler.profile.trust_score|floatformat:1 }} &#9733;</span>
+        {% endif %}
       {% else %}
-        <span class="avatar avatar--initial">{{ trip.traveler.username|first|upper }}</span>
-      {% endif %}
-      <span class="rider__name">{{ trip.traveler.username }}</span>
-      {% if trip.traveler.profile.is_verified %}<span class="stamp">Verified</span>{% endif %}
-      {% if trip.traveler.profile.trust_score %}
-        <span class="chip chip--score">{{ trip.traveler.profile.trust_score|floatformat:1 }} &#9733;</span>
+        <span class="chip chip--status">Poster details after you log in</span>
       {% endif %}
       {% if trip.gender_preference != 'any' %}
         <span class="chip chip--status">{{ trip.get_gender_preference_display }}</span>
@@ -94,14 +101,22 @@
     {% if trip.notes %}<p class="ticket__note">{{ trip.notes|truncatechars:110 }}</p>{% endif %}
 
     <div class="ticket__actions">
-      <a href="{% url 'trip-detail' trip.pk %}" class="btn btn--ghost btn--sm">View &amp; chat</a>
-      {% if user.is_authenticated and user != trip.traveler and not trip.is_full %}
-      <form method="post" action="{% url 'trip-join' trip.pk %}">
-        {% csrf_token %}
-        <button type="submit" class="btn btn--sm">Join this ride</button>
-      </form>
-      {% elif trip.is_full %}
-      <span class="btn btn--ghost btn--sm btn--disabled">Fully booked</span>
+      {% if user.is_authenticated %}
+        <a href="{% url 'trip-detail' trip.pk %}" class="btn btn--ghost btn--sm">View &amp; chat</a>
+        {% if user != trip.traveler and not trip.is_full %}
+        <form method="post" action="{% url 'trip-join' trip.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn--sm">Join this ride</button>
+        </form>
+        {% elif trip.is_full %}
+        <span class="btn btn--ghost btn--sm btn--disabled">Fully booked</span>
+        {% endif %}
+      {% else %}
+        {% if trip.is_full %}
+          <span class="btn btn--ghost btn--sm btn--disabled">Fully booked</span>
+        {% else %}
+          <a href="{% url 'login' %}?next={% url 'trip-detail' trip.pk %}" class="btn btn--sm">Join ride</a>
+        {% endif %}
       {% endif %}
     </div>
 

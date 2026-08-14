@@ -24,20 +24,34 @@ class StyledFormMixin:
 
 
 class SignUpForm(StyledFormMixin, UserCreationForm):
+    first_name = forms.CharField(max_length=150, required=True, label='First name')
+    last_name = forms.CharField(max_length=150, required=True, label='Last name')
     email = forms.EmailField(required=True, help_text="We send ride notifications here.")
 
     placeholders = {
+        'first_name': 'e.g. David',
+        'last_name': 'e.g. Amoo',
         'username': 'e.g. smile_a',
         'email': 'you@example.com',
     }
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password1', 'password2']
+        fields = ['first_name', 'last_name', 'username', 'email', 'password1', 'password2']
 
 
 class LoginForm(StyledFormMixin, AuthenticationForm):
     placeholders = {'username': 'Your username'}
+
+
+class NameForm(StyledFormMixin, forms.ModelForm):
+    """Lets an existing account add or fix their name from the profile page."""
+    placeholders = {'first_name': 'e.g. David', 'last_name': 'e.g. Amoo'}
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name']
+        labels = {'first_name': 'First name', 'last_name': 'Last name'}
 
 
 class ProfileForm(StyledFormMixin, forms.ModelForm):
@@ -76,8 +90,9 @@ class TripForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = Trip
         fields = [
-            'pickup_area', 'dropoff_area', 'departure_time',
-            'max_companions', 'cost_estimate', 'gender_preference', 'notes',
+            'pickup_area', 'pickup_lat', 'pickup_lng',
+            'dropoff_area', 'dropoff_lat', 'dropoff_lng',
+            'departure_time', 'max_companions', 'cost_estimate', 'gender_preference', 'notes',
         ]
         labels = {
             'pickup_area': 'Setting off from',
@@ -89,8 +104,8 @@ class TripForm(StyledFormMixin, forms.ModelForm):
             'notes': 'Notes for riders',
         }
         help_texts = {
-            'pickup_area': '',
-            'dropoff_area': '',
+            'pickup_area': 'Start typing and pick a real match from the list.',
+            'dropoff_area': 'Start typing and pick a real match from the list.',
             'cost_estimate': 'Roughly what the whole ride costs. Riders split it between them.',
         }
         widgets = {
@@ -98,11 +113,19 @@ class TripForm(StyledFormMixin, forms.ModelForm):
                 attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'
             ),
             'notes': forms.Textarea(attrs={'rows': 3}),
+            'pickup_lat': forms.HiddenInput(),
+            'pickup_lng': forms.HiddenInput(),
+            'dropoff_lat': forms.HiddenInput(),
+            'dropoff_lng': forms.HiddenInput(),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['departure_time'].input_formats = ['%Y-%m-%dT%H:%M']
+        self.fields['pickup_lat'].required = False
+        self.fields['pickup_lng'].required = False
+        self.fields['dropoff_lat'].required = False
+        self.fields['dropoff_lng'].required = False
 
 
 class TripFilterForm(StyledFormMixin, forms.Form):

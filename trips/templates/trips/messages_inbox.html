@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Messages{% endblock %}
+
+{% block content %}
+<div class="head">
+  <h1>Messages</h1>
+  <p class="head__sub">Every private conversation you're part of, newest first.</p>
+</div>
+
+{% if threads %}
+<div class="panel" style="padding:0">
+  {% for t in threads %}
+  <a href="{% url 'trip-chat' t.trip.pk t.other.id %}" class="rider"
+     style="text-decoration:none;padding:16px 22px;border-bottom:1px solid var(--line-soft);align-items:flex-start">
+    {% if t.other.profile.picture %}
+      <img class="avatar" src="{{ t.other.profile.picture.url }}" alt="">
+    {% else %}
+      <span class="avatar avatar--initial">{{ t.other.get_full_name|default:t.other.username|first|upper }}</span>
+    {% endif %}
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;justify-content:space-between;gap:10px">
+        <span class="rider__name">{{ t.other.get_full_name|default:t.other.username }}</span>
+        <span style="color:var(--muted);font-size:.78rem;white-space:nowrap">{{ t.last_message.created_at|date:"D H:i" }}</span>
+      </div>
+      <div style="color:var(--muted);font-size:.84rem;margin-top:2px">{{ t.trip.pickup_area }} &rarr; {{ t.trip.dropoff_area }}</div>
+      <div style="font-size:.88rem;margin-top:4px;{% if t.unread %}font-weight:600;color:var(--ink){% else %}color:var(--muted){% endif %}">
+        {% if t.last_message.sender == user %}You: {% endif %}{{ t.last_message.body|truncatechars:70 }}
+      </div>
+    </div>
+    {% if t.unread %}<span class="chip chip--score" style="flex:0 0 auto">{{ t.unread }} new</span>{% endif %}
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  <p class="empty__title">No messages yet</p>
+  <p class="empty__body">Once you join a ride or someone joins yours, your conversations show up here.</p>
+  <a href="{% url 'trip-list' %}" class="btn">Browse rides</a>
+</div>
+{% endif %}
+{% endblock %}

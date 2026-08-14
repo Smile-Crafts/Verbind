@@ -4,12 +4,12 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path, include
 
-from trips.forms import LoginForm
+from trips.views import VerbindLoginView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Our own styled login page, listed before the auth defaults so it wins.
-    path('accounts/login/', auth_views.LoginView.as_view(authentication_form=LoginForm), name='login'),
+    path('accounts/login/', VerbindLoginView.as_view(), name='login'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('', include('trips.urls')),
 ]

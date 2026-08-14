@@ -39,10 +39,19 @@ class Profile(models.Model):
     id_document = models.ImageField(upload_to='id_documents/', blank=True, null=True)
     is_verified = models.BooleanField(default=False)
 
+    # --- Email verification (compulsory, separate from ID verification) ---
+    email_verified = models.BooleanField(default=False)
+    email_verification_token = models.CharField(max_length=48, blank=True)
+
     is_pro = models.BooleanField(default=False, help_text="Unlocks unlimited ride joins")
 
     def __str__(self):
         return self.user.username
+
+    @property
+    def fully_verified(self):
+        """Both checks required before someone can post or join a ride."""
+        return self.is_verified and self.email_verified
 
     @property
     def trust_score(self):
@@ -58,7 +67,11 @@ class Trip(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='posted_trips'
     )
     pickup_area = models.CharField(max_length=120, help_text="e.g. 'Berger, Lagos'")
+    pickup_lat = models.FloatField(null=True, blank=True)
+    pickup_lng = models.FloatField(null=True, blank=True)
     dropoff_area = models.CharField(max_length=120, help_text="e.g. 'Victoria Island, Lagos'")
+    dropoff_lat = models.FloatField(null=True, blank=True)
+    dropoff_lng = models.FloatField(null=True, blank=True)
     departure_time = models.DateTimeField()
     max_companions = models.PositiveIntegerField(default=1)
     cost_estimate = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -82,6 +95,18 @@ class Trip(models.Model):
     @property
     def is_full(self):
         return self.spots_filled >= self.max_companions
+
+    @property
+    def cost_per_person(self):
+        """
+        What each rider pays if every seat fills — the honest number to show,
+        since a per-seat estimate based on however many have joined *so far*
+        would change (and mislead) every time someone new joins.
+        """
+        if not self.cost_estimate or not self.max_companions:
+            return None
+        # +1 for the person who posted the ride — they're splitting it too.
+        return self.cost_estimate / (self.max_companions + 1)
 
     @property
     def seat_states(self):
@@ -113,12 +138,26 @@ class JoinRequest(models.Model):
 
 
 class Message(models.Model):
-    """A single in-app chat message tied to a trip (visible to everyone on that trip)."""
+    """
+    A private message between two people on a shared trip.
+
+    `recipient` is nullable to protect messages that already exist in
+    production from before threads were split by pair — those stay
+    visible as legacy group messages rather than being deleted or
+    misassigned to the wrong pair.
+    """
 
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name='messages')
-    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_messages'
+    )
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='received_messages', null=True, blank=True,
+    )
     body = models.CharField(max_length=1000)
     created_at = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False, help_text="Only meaningful from the recipient's side.")
 
     class Meta:
         ordering = ['created_at']

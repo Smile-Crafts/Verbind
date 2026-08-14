@@ -4,12 +4,133 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#5C1A26">
-    <title>{% block title %}Verbind{% endblock %} · Verbind</title>
+    <title>{% block title %}Ride sharing{% endblock %} · Verbind</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'trips/verbind.css' %}">
+
+    <script>
+      // Defined in <head>, before any page content, so that inline scripts
+      // further down the page (e.g. trip_detail.html's countdown, or
+      // trip_form.html's address search) can call Verbind.* immediately
+      // rather than racing a script placed at the bottom of the page.
+      window.Verbind = window.Verbind || {};
+
+      Verbind.togglePassword = function (btn) {
+        var input = btn.previousElementSibling;
+        if (!input) return;
+        var showing = input.type === 'text';
+        input.type = showing ? 'password' : 'text';
+        btn.textContent = showing ? 'Show' : 'Hide';
+      };
+
+      // Address autocomplete: wires a text input to the location-search
+      // endpoint and a pair of hidden lat/lng inputs. Free OpenStreetMap
+      // search, proxied through our own backend (see location_search view).
+      Verbind.attachLocationSearch = function (inputId, latId, lngId) {
+        document.addEventListener('DOMContentLoaded', function () {
+          var input = document.getElementById(inputId);
+          var latField = document.getElementById(latId);
+          var lngField = document.getElementById(lngId);
+          if (!input) return;
+
+          var box = document.createElement('div');
+          box.className = 'loc-suggestions';
+          input.parentNode.style.position = 'relative';
+          input.parentNode.appendChild(box);
+
+          var timer = null;
+          input.addEventListener('input', function () {
+            if (latField) latField.value = '';
+            if (lngField) lngField.value = '';
+            var q = input.value.trim();
+            clearTimeout(timer);
+            if (q.length < 3) { box.innerHTML = ''; return; }
+            timer = setTimeout(function () {
+              fetch('/api/location-search/?q=' + encodeURIComponent(q))
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                  box.innerHTML = '';
+                  (data.results || []).forEach(function (item) {
+                    var row = document.createElement('button');
+                    row.type = 'button';
+                    row.className = 'loc-suggestions__item';
+                    row.textContent = item.label;
+                    row.addEventListener('click', function () {
+                      input.value = item.label;
+                      if (latField) latField.value = item.lat;
+                      if (lngField) lngField.value = item.lng;
+                      box.innerHTML = '';
+                    });
+                    box.appendChild(row);
+                  });
+                })
+                .catch(function () { box.innerHTML = ''; });
+            }, 450); // debounced, and respects Nominatim's fair-use rate limit
+          });
+
+          document.addEventListener('click', function (e) {
+            if (!box.contains(e.target) && e.target !== input) box.innerHTML = '';
+          });
+        });
+      };
+
+      // Live username availability check on signup.
+      Verbind.attachUsernameCheck = function (inputId) {
+        document.addEventListener('DOMContentLoaded', function () {
+          var input = document.getElementById(inputId);
+          if (!input) return;
+          var hint = document.createElement('div');
+          hint.className = 'field__help username-hint';
+          input.parentNode.appendChild(hint);
+
+          var timer = null;
+          input.addEventListener('input', function () {
+            var q = input.value.trim();
+            clearTimeout(timer);
+            if (!q) { hint.textContent = ''; return; }
+            timer = setTimeout(function () {
+              fetch('/api/check-username/?username=' + encodeURIComponent(q))
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                  if (data.available === true) {
+                    hint.textContent = 'Available';
+                    hint.style.color = 'var(--ok)';
+                  } else if (data.available === false) {
+                    hint.textContent = 'Already taken';
+                    hint.style.color = 'var(--danger)';
+                  } else {
+                    hint.textContent = '';
+                  }
+                });
+            }, 350);
+          });
+        });
+      };
+
+      // Live countdown to departure, shown to participants on the trip
+      // detail page. Deferred to DOMContentLoaded since it needs the
+      // #countdown element to exist in the DOM before it can find it.
+      Verbind.attachCountdown = function (elId, isoDeparture) {
+        document.addEventListener('DOMContentLoaded', function () {
+          var el = document.getElementById(elId);
+          if (!el) return;
+          var target = new Date(isoDeparture).getTime();
+
+          function tick() {
+            var diff = target - Date.now();
+            if (diff <= 0) { el.textContent = 'Departure time has passed'; return; }
+            var h = Math.floor(diff / 3600000);
+            var m = Math.floor((diff % 3600000) / 60000);
+            el.textContent = h > 0 ? (h + 'h ' + m + 'm to departure') : (m + 'm to departure');
+          }
+          tick();
+          setInterval(tick, 30000);
+        });
+      };
+    </script>
 </head>
 <body>
 
@@ -20,19 +141,25 @@
     <nav class="topbar__nav">
       {% if user.is_authenticated %}
         <span class="topbar__who">
-          <strong>{{ user.username }}</strong>
+          <strong>{{ user.get_full_name|default:user.username }}</strong>
           {% if user.profile.is_verified %}<span class="stamp stamp--onDark">Verified</span>{% endif %}
         </span>
         <a href="{% url 'trip-create' %}" class="btn btn--gold btn--sm">Post a ride</a>
+        <a href="{% url 'my-trips' %}" class="btn btn--onDark btn--sm">My rides</a>
+        <a href="{% url 'messages-inbox' %}" class="btn btn--onDark btn--sm">
+          Messages{% if unread_message_count %}<span class="chip chip--score" style="margin-left:5px">{{ unread_message_count }}</span>{% endif %}
+        </a>
+        <a href="{% url 'drivers' %}" class="btn btn--onDark btn--sm">Drivers</a>
         <a href="{% url 'edit-profile' %}" class="btn btn--onDark btn--sm">Profile</a>
-        {% if not user.profile.is_verified %}
-          <a href="{% url 'verify-identity' %}" class="btn btn--onDark btn--sm">Verify identity</a>
+        {% if not user.is_staff and not user.profile.fully_verified %}
+          <a href="{% url 'verification-gate' %}" class="btn btn--onDark btn--sm">Get verified</a>
         {% endif %}
         <form method="post" action="{% url 'logout' %}" style="margin:0">
           {% csrf_token %}
           <button type="submit" class="btn btn--onDark btn--sm">Log out</button>
         </form>
       {% else %}
+        <a href="{% url 'drivers' %}" class="btn btn--onDark btn--sm">Drivers</a>
         <a href="{% url 'signup' %}" class="btn btn--gold btn--sm">Create account</a>
         <a href="{% url 'login' %}" class="btn btn--onDark btn--sm">Log in</a>
       {% endif %}
@@ -51,6 +178,10 @@
     {% block content %}{% endblock %}
   </div>
 </main>
+
+<a href="{% url 'verai' %}" class="verai-fab" title="VerAI — coming soon" aria-label="VerAI chat assistant, coming soon">
+  <span class="verai-fab__dot"></span>VerAI
+</a>
 
 </body>
 </html>
