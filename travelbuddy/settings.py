@@ -137,16 +137,26 @@ LOGOUT_REDIRECT_URL = '/'
 
 # --- Email ---
 # Emails print to the server log instead of sending for real, both locally
-# and on Railway, until real SMTP credentials are set as env vars below.
+# and on Railway, until real credentials are set as env vars below.
 #
-# To send real emails, set these as environment variables (Railway or local):
+# IMPORTANT: Railway blocks outbound SMTP (ports 25/465/587/2525) on
+# Free/Trial/Hobby plans — see https://docs.railway.com/networking/outbound-networking.
+# Gmail SMTP will NOT work there no matter how correctly it's configured.
+# Use the Resend option below instead; it sends over HTTPS, which Railway
+# does not block.
+#
+# Option A — Resend (works on Railway's free/trial plan):
+#   EMAIL_BACKEND=trips.email_backends.ResendEmailBackend
+#   RESEND_API_KEY=re_xxxxxxxxxxxx   (from resend.com, free tier is enough for a beta)
+#
+# Option B — real SMTP (only works if you're on Railway Pro, or hosting
+# elsewhere that doesn't block SMTP):
 #   EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
 #   EMAIL_HOST=smtp.gmail.com
-#   EMAIL_PORT=587
-#   EMAIL_USE_TLS=True
 #   EMAIL_HOST_USER=youraddress@gmail.com
-#   EMAIL_HOST_PASSWORD=your-16-character-app-password   (Gmail "app password", not your login password)
+#   EMAIL_HOST_PASSWORD=your-16-character-app-password
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
