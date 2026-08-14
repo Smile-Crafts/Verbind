@@ -1,11 +1,14 @@
-{% extends "base.html" %}
+{% load static %}{% extends "base.html" %}
 {% block title %}Log in{% endblock %}
 {% block main_class %}auth{% endblock %}
 {% block wrap_class %}wrap--narrow{% endblock %}
 
 {% block content %}
 <div class="auth__brand">
-  <span class="wordmark">VERBIND<span class="wordmark__dot">.</span></span>
+  <span class="wordmark">
+    <img src="{% static 'trips/img/logo-burgundy.png' %}" alt="" class="wordmark__mark">
+    VERBIND<span class="wordmark__dot">.</span>
+  </span>
   <p class="auth__tag">Share the ride. Split the fare.</p>
 </div>
 

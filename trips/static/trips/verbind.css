@@ -43,7 +43,9 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
-  background: var(--cream);
+  background-color: var(--cream);
+  background-image: radial-gradient(rgba(92, 26, 38, .07) 1px, transparent 1px);
+  background-size: 24px 24px;
   color: var(--ink);
   font-family: var(--font-body);
   font-size: 16px;
@@ -113,9 +115,10 @@ h3 { font-size: 1.3rem; font-weight: 700; text-transform: none; letter-spacing: 
   color: var(--cream);
   text-decoration: none;
   display: inline-flex;
-  align-items: baseline;
-  gap: 3px;
+  align-items: center;
+  gap: 8px;
 }
+.wordmark__mark { height: 22px; width: auto; display: block; }
 .wordmark:hover { color: #fff; }
 .wordmark__dot { color: var(--gold); font-size: 1.5em; line-height: 0; }
 
@@ -687,6 +690,32 @@ select {
 .rides > *:nth-child(4) { animation-delay: .15s; }
 .rides > *:nth-child(5) { animation-delay: .2s; }
 .rides > *:nth-child(n+6) { animation-delay: .25s; }
+
+/* A thin strip of scrolling lane-markings under the header — the first
+   thing that reads "road" before anyone has read a word of text. */
+.road-strip {
+  height: 4px;
+  background-image: repeating-linear-gradient(
+    90deg, var(--gold) 0 22px, transparent 22px 42px
+  );
+  background-size: 84px 100%;
+  opacity: .6;
+  animation: road-scroll 1.1s linear infinite;
+}
+@keyframes road-scroll {
+  from { background-position: 0 0; }
+  to   { background-position: -84px 0; }
+}
+
+/* Page-load sequence: header drops in, then the hero content rises after
+   it, so the "road" strip and logo register before any body text does. */
+.road-enter .topbar { animation: road-drop .48s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes road-drop {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(0); }
+}
+.road-enter .head { animation: rise .5s ease .18s both; }
+.road-enter .search { animation: rise .5s ease .26s both; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
