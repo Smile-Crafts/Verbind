@@ -35,15 +35,22 @@
     <div class="ticket__top">
       <div class="route">
         <div class="route__leg">
-          <div class="route__node"><span></span></div>
+          <div class="route__node route__node--start"><span></span></div>
           <div>
             <span class="route__label">Pickup</span>
             <span class="route__place">{{ trip.pickup_area }}</span>
           </div>
         </div>
-        <div class="route__rail"></div>
+        <div class="route__rail">
+          <svg class="route__car" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M5 16.5V13l1.6-4.3A2 2 0 0 1 8.5 7.3h7a2 2 0 0 1 1.9 1.4L19 13v3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="7.5" cy="16.5" r="1.5" fill="currentColor"/>
+            <circle cx="16.5" cy="16.5" r="1.5" fill="currentColor"/>
+            <path d="M5 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </div>
         <div class="route__leg route__leg--end">
-          <div class="route__node"><span></span></div>
+          <div class="route__node route__node--end"><span></span></div>
           <div>
             <span class="route__label">Drop-off</span>
             <span class="route__place">{{ trip.dropoff_area }}</span>

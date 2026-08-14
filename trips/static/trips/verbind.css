@@ -287,17 +287,40 @@ h3 { font-size: 1.3rem; font-weight: 700; text-transform: none; letter-spacing: 
   padding-top: 6px;
 }
 .route__node span {
-  width: 9px; height: 9px;
-  border-radius: 50%;
-  border: 2px solid var(--burgundy);
-  background: var(--paper);
   display: block;
 }
-.route__leg--end .route__node span { background: var(--burgundy); }
+/* Pickup: gold pin, hollow ring — where the trip starts */
+.route__node--start span {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  border: 2.5px solid var(--gold);
+  background: var(--paper);
+  box-shadow: 0 0 0 3px rgba(201,148,47,.16);
+}
+/* Drop-off: solid burgundy square — Uber/Bolt's own convention for "destination" */
+.route__node--end span {
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  background: var(--burgundy);
+  transform: translateY(1px);
+}
 .route__rail {
-  height: 22px;
+  position: relative;
+  height: 26px;
   margin-left: 7px;
-  border-left: 2px dotted #C9B9A5;
+  border-left: 2.5px dashed #D8B978;
+  display: flex;
+  align-items: center;
+}
+.route__car {
+  position: absolute;
+  left: -9.5px;
+  width: 19px; height: 19px;
+  padding: 2px;
+  background: var(--paper);
+  color: var(--burgundy);
+  border-radius: 50%;
+  border: 1.5px solid var(--line);
 }
 .route__label {
   font-family: var(--font-body);
