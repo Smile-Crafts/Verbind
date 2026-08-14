@@ -54,12 +54,16 @@ class Profile(models.Model):
         return self.is_verified and self.email_verified
 
     @property
-    def trust_score(self):
-        """Average of all ratings this user has received, or None if no ratings yet."""
-        result = Rating.objects.filter(ratee=self.user).aggregate(avg=Avg('score'))
-        return result['avg']
-
-
+    def fully_verified(self):
+        """
+        TEMPORARY: only ID verification is enforced right now — email
+        verification is still tracked and encouraged, but not required,
+        since real email delivery needs a paid domain we don't have yet.
+        Change this back to `self.is_verified and self.email_verified`
+        once that's sorted.
+        """
+        return self.is_verified
+    
 class Trip(models.Model):
     """A ride someone is planning within the city and is open to sharing."""
 

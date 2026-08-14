@@ -4,42 +4,22 @@
 
 {% block content %}
 <div class="head">
-  <h1>Two quick steps before you can ride</h1>
+  <h1>Verify to post or join a ride</h1>
   <p class="head__sub">
-    Posting or joining a ride on Verbind requires both of these — it's how
-    we keep everyone on here a real, accountable person.
+    Identity verification is required — it's how we keep everyone on here
+    a real, accountable person. Email verification is recommended too,
+    but not required yet.
   </p>
 </div>
 
 <div class="panel">
   <div class="verify-step">
-    <span class="verify-step__icon {% if user.profile.email_verified %}verify-step__icon--done{% else %}verify-step__icon--pending{% endif %}">
-      {% if user.profile.email_verified %}&#10003;{% else %}1{% endif %}
-    </span>
-    <div style="flex:1">
-      <strong>Verify your email</strong>
-      <p style="margin:4px 0 0;color:var(--muted);font-size:.88rem">
-        {% if user.profile.email_verified %}
-          Done — {{ user.email }} is confirmed.
-        {% else %}
-          We sent a link to {{ user.email|default:"your email" }}. Click it, then come back here.
-        {% endif %}
-      </p>
-    </div>
-    {% if not user.profile.email_verified %}
-    <form method="post" action="{% url 'resend-verification-email' %}">
-      {% csrf_token %}
-      <button type="submit" class="btn btn--ghost btn--sm">Resend email</button>
-    </form>
-    {% endif %}
-  </div>
-
-  <div class="verify-step">
     <span class="verify-step__icon {% if user.profile.is_verified %}verify-step__icon--done{% else %}verify-step__icon--pending{% endif %}">
-      {% if user.profile.is_verified %}&#10003;{% else %}2{% endif %}
+      {% if user.profile.is_verified %}&#10003;{% else %}1{% endif %}
     </span>
     <div style="flex:1">
       <strong>Verify your identity</strong>
+      <span class="chip chip--status" style="margin-left:6px">Required</span>
       <p style="margin:4px 0 0;color:var(--muted);font-size:.88rem">
         {% if user.profile.is_verified %}
           Done — thanks for confirming who you are.
@@ -52,15 +32,38 @@
     <a href="{% url 'verify-identity' %}" class="btn btn--ghost btn--sm">Verify now</a>
     {% endif %}
   </div>
+
+  <div class="verify-step">
+    <span class="verify-step__icon {% if user.profile.email_verified %}verify-step__icon--done{% else %}verify-step__icon--pending{% endif %}">
+      {% if user.profile.email_verified %}&#10003;{% else %}2{% endif %}
+    </span>
+    <div style="flex:1">
+      <strong>Verify your email</strong>
+      <span class="chip chip--status" style="margin-left:6px">Recommended</span>
+      <p style="margin:4px 0 0;color:var(--muted);font-size:.88rem">
+        {% if user.profile.email_verified %}
+          Done — {{ user.email }} is confirmed.
+        {% else %}
+          We sent a link to {{ user.email|default:"your email" }}. Not required to ride yet, but helps us reach you about your rides.
+        {% endif %}
+      </p>
+    </div>
+    {% if not user.profile.email_verified %}
+    <form method="post" action="{% url 'resend-verification-email' %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn--ghost btn--sm">Resend email</button>
+    </form>
+    {% endif %}
+  </div>
 </div>
 
 {% if user.profile.fully_verified %}
 <div class="notice" style="margin-top:20px">
   <strong>You're all set</strong>
-  Both steps are done — you can post and join rides now.
+  Your identity is verified — you can post and join rides now.
 </div>
 <a href="{% url 'trip-list' %}" class="btn" style="margin-top:8px">Browse rides</a>
 {% else %}
-<p class="auth__alt">You can still browse rides while you finish these — <a href="{% url 'trip-list' %}">see what's posted</a>.</p>
+<p class="auth__alt">You can still browse rides while you finish this — <a href="{% url 'trip-list' %}">see what's posted</a>.</p>
 {% endif %}
 {% endblock %}
