@@ -48,8 +48,9 @@ class ResendEmailBackend(BaseEmailBackend):
                 headers={
                     'Authorization': f'Bearer {api_key}',
                     'Content-Type': 'application/json',
+                    'User-Agent': 'Verbind/1.0 (Django email backend)',
                 },
-            )
+            ) 
             try:
                 with urllib.request.urlopen(req, timeout=8) as resp:
                     resp.read()
