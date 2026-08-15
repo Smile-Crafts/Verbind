@@ -160,3 +160,36 @@ class RatingForm(StyledFormMixin, forms.ModelForm):
                 choices=[(i, f"{i} star{'s' if i != 1 else ''}") for i in range(1, 6)]
             )
         }
+
+
+class RideRequestForm(StyledFormMixin, forms.Form):
+    """Passenger-first request form. This is the first step of the new Verbind ride flow."""
+    pickup_area = forms.CharField(max_length=120, label='Pickup location')
+    pickup_lat = forms.FloatField(required=False, widget=forms.HiddenInput())
+    pickup_lng = forms.FloatField(required=False, widget=forms.HiddenInput())
+    dropoff_area = forms.CharField(max_length=120, label='Destination')
+    dropoff_lat = forms.FloatField(required=False, widget=forms.HiddenInput())
+    dropoff_lng = forms.FloatField(required=False, widget=forms.HiddenInput())
+    when = forms.ChoiceField(
+        label='When',
+        choices=[('now', 'Now'), ('later', 'Schedule for later')],
+        widget=forms.RadioSelect,
+    )
+    departure_time = forms.DateTimeField(
+        required=False,
+        label='Departure time',
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
+        input_formats=['%Y-%m-%dT%H:%M'],
+    )
+    passengers = forms.IntegerField(min_value=1, max_value=6, initial=1, label='Passengers')
+
+    placeholders = {
+        'pickup_area': 'e.g. OAU Main Gate',
+        'dropoff_area': 'e.g. Mayfair, Ile-Ife',
+    }
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get('when') == 'later' and not cleaned.get('departure_time'):
+            self.add_error('departure_time', 'Choose a departure time.')
+        return cleaned

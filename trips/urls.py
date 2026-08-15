@@ -4,6 +4,8 @@ from . import views
 
 urlpatterns = [
     path('', views.TripListView.as_view(), name='trip-list'),
+    path('request-ride/', views.request_ride, name='request-ride'),
+    path('request-ride/matching/', views.ride_matching, name='ride-matching'),
     path('post/', views.TripCreateView.as_view(), name='trip-create'),
     path('my-rides/', views.my_trips, name='my-trips'),
     path('trip/<int:pk>/', views.trip_detail, name='trip-detail'),

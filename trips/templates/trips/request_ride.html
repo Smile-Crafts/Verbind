@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Request a ride{% endblock %}
+{% block wrap_class %}wrap--narrow{% endblock %}
+
+{% block content %}
+<div class="request-flow">
+  <div class="flow-kicker">VERBIND · PASSENGER</div>
+  <div class="head">
+    <h1>Where do you need to go?</h1>
+    <p class="head__sub">Tell us your pickup and destination. Verbind will look for a suitable ride partner or driver.</p>
+  </div>
+
+  <div class="flow-steps" aria-label="Ride request progress">
+    <span class="flow-step flow-step--active"><b>1</b> Request</span>
+    <span class="flow-line"></span>
+    <span class="flow-step"><b>2</b> Match</span>
+    <span class="flow-line"></span>
+    <span class="flow-step"><b>3</b> Confirm</span>
+  </div>
+
+  <div class="panel request-panel">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="request-route">
+        <div class="request-location">
+          <span class="request-location__dot request-location__dot--start"></span>
+          <div class="field request-location__field">
+            {{ form.pickup_area.label_tag }}
+            {{ form.pickup_area }}
+            {% if form.pickup_area.errors %}<div class="field__errors">{{ form.pickup_area.errors }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="request-route__rail"></div>
+        <div class="request-location">
+          <span class="request-location__dot request-location__dot--end"></span>
+          <div class="field request-location__field">
+            {{ form.dropoff_area.label_tag }}
+            {{ form.dropoff_area }}
+            {% if form.dropoff_area.errors %}<div class="field__errors">{{ form.dropoff_area.errors }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      {{ form.pickup_lat }}{{ form.pickup_lng }}{{ form.dropoff_lat }}{{ form.dropoff_lng }}
+
+      <div class="request-options">
+        <div class="request-option-group">
+          <div class="field__label">{{ form.when.label }}</div>
+          <div class="choice-cards">
+            {% for radio in form.when %}
+              <label class="choice-card">
+                {{ radio.tag }}
+                <span><strong>{% if radio.data.value == 'now' %}Now{% else %}Later{% endif %}</strong><small>{% if radio.data.value == 'now' %}Leave as soon as possible{% else %}Choose a departure time{% endif %}</small></span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="field request-time-field">
+          {{ form.departure_time.label_tag }}
+          {{ form.departure_time }}
+          {% if form.departure_time.errors %}<div class="field__errors">{{ form.departure_time.errors }}</div>{% endif %}
+        </div>
+
+        <div class="field request-passengers">
+          {{ form.passengers.label_tag }}
+          {{ form.passengers }}
+          <div class="field__help">How many people are travelling with you.</div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn--block request-submit">Find my ride <span>→</span></button>
+    </form>
+  </div>
+
+  <p class="request-note">Your exact fare is calculated after Verbind finds a suitable route and match.</p>
+</div>
+
+<script>
+  Verbind.attachLocationSearch('id_pickup_area', 'id_pickup_lat', 'id_pickup_lng');
+  Verbind.attachLocationSearch('id_dropoff_area', 'id_dropoff_lat', 'id_dropoff_lng');
+</script>
+{% endblock %}

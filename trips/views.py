@@ -21,7 +21,7 @@ from django.views.generic import ListView, CreateView, UpdateView
 
 from .forms import (
     SignUpForm, LoginForm, NameForm, ProfileForm, IDVerificationForm, TripForm,
-    TripFilterForm, MessageForm, RatingForm,
+    TripFilterForm, MessageForm, RatingForm, RideRequestForm,
 )
 from .models import Trip, JoinRequest, Message, Rating, Profile
 
@@ -155,6 +155,49 @@ def verify_identity(request):
     else:
         form = IDVerificationForm(instance=profile)
     return render(request, 'trips/verify_identity.html', {'form': form})
+
+
+# ---------- Passenger-first ride request ----------
+
+@login_required
+def request_ride(request):
+    """First step of the new Verbind flow: a passenger asks Verbind to find a ride."""
+    if request.method == 'POST':
+        form = RideRequestForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            request.session['ride_request'] = {
+                'pickup_area': data['pickup_area'],
+                'pickup_lat': data.get('pickup_lat'),
+                'pickup_lng': data.get('pickup_lng'),
+                'dropoff_area': data['dropoff_area'],
+                'dropoff_lat': data.get('dropoff_lat'),
+                'dropoff_lng': data.get('dropoff_lng'),
+                'when': data['when'],
+                'departure_time': data['departure_time'].isoformat() if data.get('departure_time') else None,
+                'passengers': data['passengers'],
+            }
+            return redirect('ride-matching')
+    else:
+        form = RideRequestForm(initial={'when': 'now'})
+    return render(request, 'trips/request_ride.html', {'form': form})
+
+
+@login_required
+def ride_matching(request):
+    """Prototype matching result. Real driver/partner matching comes next."""
+    ride_request = request.session.get('ride_request')
+    if not ride_request:
+        return redirect('request-ride')
+
+    options = [
+        {'name': 'Verified Verbind Driver', 'rating': '4.8', 'vehicle': 'Toyota Corolla', 'plate': 'ABC-123-XY', 'eta': '5 min', 'fare': 1500},
+        {'name': 'Ride partner match', 'rating': '4.9', 'vehicle': 'Shared ride', 'plate': '2 seats available', 'eta': '8 min', 'fare': 1100},
+    ]
+    return render(request, 'trips/ride_matching.html', {
+        'ride_request': ride_request,
+        'matching_options': options,
+    })
 
 
 # ---------- Trips ----------

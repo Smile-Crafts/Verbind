@@ -204,7 +204,7 @@
           <strong>{{ user.get_full_name|default:user.username }}</strong>
           {% if user.profile.is_verified %}<span class="stamp stamp--onDark">Verified</span>{% endif %}
         </span>
-        <a href="{% url 'trip-create' %}" class="btn btn--gold btn--sm">Post a ride</a>
+        <a href="{% url 'request-ride' %}" class="btn btn--gold btn--sm">Request a ride</a>
         <a href="{% url 'my-trips' %}" class="btn btn--onDark btn--sm">My rides</a>
         <a href="{% url 'messages-inbox' %}" class="btn btn--onDark btn--sm">
           Messages{% if unread_message_count %}<span class="chip chip--score" style="margin-left:5px">{{ unread_message_count }}</span>{% endif %}
