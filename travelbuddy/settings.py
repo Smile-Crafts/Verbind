@@ -166,3 +166,26 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Verbind <noreply@verb
 
 # Free tier: non-pro users can join this many rides per calendar month.
 FREE_JOINS_PER_MONTH = 2
+# By default Django only prints error tracebacks to the console when
+# DEBUG=True, and DEBUG is correctly False in production — which means
+# real errors were being silently swallowed instead of showing up
+# anywhere. This forces them to print to console (which Railway's Deploy
+# Logs capture) regardless of DEBUG.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler'},
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
