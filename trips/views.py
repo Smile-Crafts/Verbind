@@ -161,44 +161,96 @@ def verify_identity(request):
 
 @login_required
 def request_ride(request):
-    """First step of the new Verbind flow: a passenger asks Verbind to find a ride."""
+    """Passenger creates a real ride request that partners can browse."""
+
     if request.method == 'POST':
         form = RideRequestForm(request.POST)
+
         if form.is_valid():
             data = form.cleaned_data
+
+            # Create a real Trip in the database.
+            # This makes the request visible to other Verbind users.
+            trip = Trip.objects.create(
+                traveler=request.user,
+                pickup_area=data['pickup_area'],
+                pickup_lat=data.get('pickup_lat'),
+                pickup_lng=data.get('pickup_lng'),
+                dropoff_area=data['dropoff_area'],
+                dropoff_lat=data.get('dropoff_lat'),
+                dropoff_lng=data.get('dropoff_lng'),
+                departure_time=data['departure_time'],
+                max_companions=data['passengers'],
+                status='not_started',
+            )
+
+            # Keep the request in session so the passenger
+            # can return to the matching/waiting page.
             request.session['ride_request'] = {
-                'pickup_area': data['pickup_area'],
-                'pickup_lat': data.get('pickup_lat'),
-                'pickup_lng': data.get('pickup_lng'),
-                'dropoff_area': data['dropoff_area'],
-                'dropoff_lat': data.get('dropoff_lat'),
-                'dropoff_lng': data.get('dropoff_lng'),
-                'when': data['when'],
-                'departure_time': data['departure_time'].isoformat() if data.get('departure_time') else None,
-                'passengers': data['passengers'],
+                'trip_id': trip.id,
+                'pickup_area': trip.pickup_area,
+                'dropoff_area': trip.dropoff_area,
+                'departure_time': trip.departure_time.isoformat(),
+                'passengers': trip.max_companions,
             }
+
+            messages.success(
+                request,
+                "Your ride request has been posted. We're waiting for a partner to join."
+            )
+
             return redirect('ride-matching')
+
     else:
         form = RideRequestForm(initial={'when': 'now'})
-    return render(request, 'trips/request_ride.html', {'form': form})
+
+    return render(
+        request,
+        'trips/request_ride.html',
+        {'form': form}
+    )
 
 
 @login_required
 def ride_matching(request):
-    """Prototype matching result. Real driver/partner matching comes next."""
+    """
+    Passenger waiting screen.
+
+    The request is now a real Trip in the database.
+    Partners can discover and join it instead of
+    Verbind immediately showing a fake driver.
+    """
+
     ride_request = request.session.get('ride_request')
+
     if not ride_request:
         return redirect('request-ride')
 
-    options = [
-        {'name': 'Verified Verbind Driver', 'rating': '4.8', 'vehicle': 'Toyota Corolla', 'plate': 'ABC-123-XY', 'eta': '5 min', 'fare': 1500},
-        {'name': 'Ride partner match', 'rating': '4.9', 'vehicle': 'Shared ride', 'plate': '2 seats available', 'eta': '8 min', 'fare': 1100},
-    ]
-    return render(request, 'trips/ride_matching.html', {
-        'ride_request': ride_request,
-        'matching_options': options,
-    })
+    trip_id = ride_request.get('trip_id')
 
+    if not trip_id:
+        return redirect('request-ride')
+
+    trip = get_object_or_404(
+        Trip,
+        pk=trip_id,
+        traveler=request.user
+    )
+
+    join_requests = trip.join_requests.select_related(
+        'requester'
+    ).all()
+
+    return render(
+        request,
+        'trips/ride_matching.html',
+        {
+            'trip': trip,
+            'ride_request': ride_request,
+            'join_requests': join_requests,
+            'partner_count': join_requests.count(),
+        }
+    )
 
 # ---------- Trips ----------
 
@@ -552,3 +604,18 @@ def messages_inbox(request):
 
     thread_list = sorted(threads.values(), key=lambda e: e['last_message'].created_at, reverse=True)
     return render(request, 'trips/messages_inbox.html', {'threads': thread_list})
+@login_required
+def partner_dashboard(request):
+    available_rides = Trip.objects.filter(
+        status='not_started'
+    ).exclude(
+        traveler=request.user
+    ).order_by('departure_time')
+
+    return render(
+        request,
+        'trips/partner_dashboard.html',
+        {
+            'available_rides': available_rides,
+        }
+    )

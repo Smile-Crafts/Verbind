@@ -1,49 +1,180 @@
 {% extends "base.html" %}
+
 {% block title %}Finding your ride{% endblock %}
+
 {% block wrap_class %}wrap--narrow{% endblock %}
 
 {% block content %}
+
 <div class="matching-page">
-  <div class="flow-kicker">VERBIND · MATCHING</div>
-  <div class="head">
-    <h1>Ride options found.</h1>
-    <p class="head__sub">We found suitable options for your journey. Choose the one that works best for you.</p>
+
+  <div class="flow-kicker">
+    VERBIND · MATCHING
   </div>
+
+  <div class="head">
+
+    <h1>Your ride request is live.</h1>
+
+    <p class="head__sub">
+      We're waiting for a verified partner to join your journey.
+    </p>
+
+  </div>
+
 
   <div class="journey-summary">
-    <div><span>Pickup</span><strong>{{ ride_request.pickup_area }}</strong></div>
-    <div class="journey-summary__arrow">↓</div>
-    <div><span>Destination</span><strong>{{ ride_request.dropoff_area }}</strong></div>
+
+    <div>
+      <span>Pickup</span>
+      <strong>{{ trip.pickup_area }}</strong>
+    </div>
+
+    <div class="journey-summary__arrow">
+      ↓
+    </div>
+
+    <div>
+      <span>Destination</span>
+      <strong>{{ trip.dropoff_area }}</strong>
+    </div>
+
   </div>
+
 
   <div class="matching-list">
-    {% for option in matching_options %}
-    <article class="match-card">
-      <div class="match-card__top">
-        <div class="match-avatar">{{ option.name|first }}</div>
-        <div class="match-person">
-          <strong>{{ option.name }}</strong>
-          <span>★ {{ option.rating }} · Verified</span>
+
+    {% if join_requests %}
+
+      {% for join_request in join_requests %}
+
+      <article class="match-card">
+
+        <div class="match-card__top">
+
+          <div class="match-avatar">
+            {{ join_request.requester.username|first|upper }}
+          </div>
+
+          <div class="match-person">
+
+            <strong>
+              {% if join_request.requester.get_full_name %}
+                {{ join_request.requester.get_full_name }}
+              {% else %}
+                {{ join_request.requester.username }}
+              {% endif %}
+            </strong>
+
+            <span>
+              Partner request received
+            </span>
+
+          </div>
+
         </div>
-        <div class="match-eta">{{ option.eta }}<small>away</small></div>
+
+
+        {% if join_request.message %}
+
+        <div class="match-card__vehicle">
+          <span>
+            {{ join_request.message }}
+          </span>
+        </div>
+
+        {% endif %}
+
+
+        <div class="match-card__bottom">
+
+          <div>
+            <small>Status</small>
+            <strong>Ready to connect</strong>
+          </div>
+
+          <a
+            href="{% url 'trip-detail' trip.pk %}"
+            class="btn btn--sm"
+          >
+            View partner
+          </a>
+
+        </div>
+
+      </article>
+
+      {% endfor %}
+
+
+    {% else %}
+
+      <div class="matching-empty">
+
+        <div class="matching-empty__icon">
+          ⌛
+        </div>
+
+        <h2>
+          Waiting for a partner
+        </h2>
+
+        <p>
+          Your request is now visible to partners looking for a ride.
+          Once someone joins, you'll see them here.
+        </p>
+
+        <div class="matching-empty__count">
+
+          <strong>
+            0
+          </strong>
+
+          <span>
+            partners have joined
+          </span>
+
+        </div>
+
       </div>
-      <div class="match-card__vehicle">
-        <span>{{ option.vehicle }}</span>
-        <span>{{ option.plate }}</span>
-      </div>
-      <div class="match-card__bottom">
-        <div><small>Estimated fare</small><strong>₦{{ option.fare|floatformat:0 }}</strong></div>
-        <button type="button" class="btn btn--sm" onclick="alert('Next step: driver acceptance and fare confirmation.')">Request this ride</button>
-      </div>
-    </article>
-    {% endfor %}
+
+    {% endif %}
+
   </div>
+
 
   <div class="matching-status">
+
     <span class="matching-status__pulse"></span>
-    <div><strong>More matches can appear</strong><small>Verbind is checking nearby availability.</small></div>
+
+    <div>
+
+      <strong>
+
+        {% if join_requests %}
+          Partner request received
+        {% else %}
+          Looking for partners
+        {% endif %}
+
+      </strong>
+
+      <small>
+        Your ride request is active on Verbind.
+      </small>
+
+    </div>
+
   </div>
 
-  <a href="{% url 'request-ride' %}" class="linkback">&larr; Change trip details</a>
+
+  <a
+    href="{% url 'request-ride' %}"
+    class="linkback"
+  >
+    &larr; Change trip details
+  </a>
+
 </div>
+
 {% endblock %}
