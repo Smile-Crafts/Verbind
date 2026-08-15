@@ -135,6 +135,62 @@
 </head>
 <body class="road-enter">
 
+<div class="app-bg" aria-hidden="true">
+  <svg class="app-bg__skyline" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+    <g fill="var(--gold-050)">
+      <rect x="10" y="150" width="90" height="110"/>
+      <rect x="150" y="110" width="80" height="150"/>
+      <rect x="280" y="170" width="100" height="90"/>
+      <rect x="430" y="80" width="70" height="180"/>
+      <rect x="550" y="140" width="95" height="120"/>
+      <rect x="700" y="100" width="80" height="160"/>
+      <rect x="830" y="165" width="100" height="95"/>
+      <rect x="980" y="60" width="75" height="200"/>
+      <rect x="1100" y="120" width="90" height="140"/>
+      <rect x="1240" y="95" width="80" height="165"/>
+      <rect x="1360" y="150" width="70" height="110"/>
+    </g>
+    <g fill="var(--burgundy-050)">
+      <rect x="70" y="190" width="60" height="70"/>
+      <rect x="210" y="150" width="65" height="110"/>
+      <rect x="350" y="115" width="55" height="145"/>
+      <rect x="480" y="180" width="70" height="80"/>
+      <rect x="620" y="90" width="50" height="170"/>
+      <rect x="750" y="160" width="75" height="100"/>
+      <rect x="880" y="120" width="60" height="140"/>
+      <rect x="1010" y="185" width="65" height="75"/>
+      <rect x="1150" y="105" width="55" height="155"/>
+      <rect x="1290" y="155" width="60" height="105"/>
+    </g>
+    <rect x="0" y="260" width="1440" height="60" fill="var(--burgundy-700)"/>
+    <g fill="var(--gold)" opacity=".9">
+      <rect x="0" y="286" width="60" height="6"/>
+      <rect x="120" y="286" width="60" height="6"/>
+      <rect x="240" y="286" width="60" height="6"/>
+      <rect x="360" y="286" width="60" height="6"/>
+      <rect x="480" y="286" width="60" height="6"/>
+      <rect x="600" y="286" width="60" height="6"/>
+      <rect x="720" y="286" width="60" height="6"/>
+      <rect x="840" y="286" width="60" height="6"/>
+      <rect x="960" y="286" width="60" height="6"/>
+      <rect x="1080" y="286" width="60" height="6"/>
+      <rect x="1200" y="286" width="60" height="6"/>
+      <rect x="1320" y="286" width="60" height="6"/>
+    </g>
+  </svg>
+
+  <div class="app-bg__cars">
+    <div class="app-bg__car app-bg__car--1">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 16.5V13l1.6-4.3A2 2 0 0 1 8.5 7.3h7a2 2 0 0 1 1.9 1.4L19 13v3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7.5" cy="16.5" r="1.6" fill="currentColor"/><circle cx="16.5" cy="16.5" r="1.6" fill="currentColor"/><path d="M5 13h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </div>
+    <div class="app-bg__car app-bg__car--2">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 16.5V13l1.6-4.3A2 2 0 0 1 8.5 7.3h7a2 2 0 0 1 1.9 1.4L19 13v3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7.5" cy="16.5" r="1.6" fill="currentColor"/><circle cx="16.5" cy="16.5" r="1.6" fill="currentColor"/><path d="M5 13h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </div>
+  </div>
+
+  <div class="app-bg__fade"></div>
+</div>
+
 <header class="topbar">
   <div class="wrap topbar__inner">
     <a class="wordmark" href="{% url 'trip-list' %}">
@@ -170,8 +226,6 @@
     </nav>
   </div>
 </header>
-
-<div class="road-strip" aria-hidden="true"></div>
 
 <main class="{% block main_class %}page{% endblock %}">
   <div class="wrap {% block wrap_class %}{% endblock %}">
